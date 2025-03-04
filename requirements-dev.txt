@@ -7,3 +7,4 @@ pytest-asyncio
 httpx
 mocker
 requests-mock
+pytest-mock

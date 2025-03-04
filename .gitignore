@@ -1,0 +1,29 @@
+# Ignore Python compiled files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore virtual environment
+.venv/
+env/
+
+# Ignore Flask session files
+flask_session/
+
+# Ignore environment variables and credentials
+.env
+*.secrets
+
+# Ignore dependency management files
+Pipfile
+Pipfile.lock
+
+# Ignore logs and cache
+*.log
+cache/
+
+*.coverage
+htmlcov/
+.benchmarks/
+.pytest_cache
+report.html

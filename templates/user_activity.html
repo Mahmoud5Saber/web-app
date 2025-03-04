@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Activity</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-user-clock"></i> User Activity Log</h1>
+
+        {% if log %}
+        <table class="activity-table">
+            <thead>
+                <tr>
+                    <th><i class="fas fa-file-alt"></i> Page</th>
+                    <th><i class="fas fa-clock"></i> Timestamp</th>
+                    <th><i class="fas fa-code"></i> Response Code</th>
+                    <th><i class="fas fa-hourglass-half"></i> Response Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in log %}
+                <tr>
+                    <td>{{ entry.page }}</td>
+                    <td>{{ entry.timestamp }}</td>
+                    <td class="status-code" data-code="{{ entry.response_code }}">{{ entry.response_code }}</td>
+                    <td>{{ entry.response_time }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty-log">🚀 No user activity recorded yet.</p>
+        {% endif %}
+
+        <div class="buttons-group">
+            <a href="/" class="button">🏠 Home</a>
+            <a href="/app-performance" class="button">⚙️ App Performance</a>
+            <a href="/request-analysis" class="button">🔍 Request Analysis</a>
+            <button id="clear-log" class="button secondary">🗑️ Clear Log</button>
+        </div>
+    </div>
+
+    <script>
+        // مسح السجل عند الضغط على زر "Clear Log"
+        document.getElementById('clear-log').addEventListener('click', function() {
+            fetch('/clear-log', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();  // إعادة تحميل الصفحة لتحديث السجل
+                    }
+                });
+        });
+
+        // تغيير لون كود الاستجابة بناءً على القيمة
+        document.querySelectorAll('.status-code').forEach(cell => {
+            const code = parseInt(cell.dataset.code);
+            if (code >= 200 && code < 300) {
+                cell.style.color = "green";  // ✅ نجاح
+            } else if (code >= 400 && code < 500) {
+                cell.style.color = "orange"; // ⚠️ خطأ من المستخدم
+            } else if (code >= 500) {
+                cell.style.color = "red";    // ❌ خطأ من السيرفر
+            }
+        });
+    </script>
+
+
+</body>
+</html>

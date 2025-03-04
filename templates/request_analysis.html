@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Analysis - API Tester</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 800px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        p.subtitle {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .request-form {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        button {
+            padding: 12px 18px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
+            background: #0056b3;
+        }
+        .response-container {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .response-box {
+            background: #eef2f7;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            max-height: 300px;
+            word-wrap: break-word;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .loading {
+            color: #007bff;
+            font-style: italic;
+        }
+        .buttons-group {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        .button {
+            padding: 12px 18px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-search"></i> Request Analysis - API Tester</h1>
+        <p class="subtitle">Test API requests and view the response</p>
+
+        <div class="request-form">
+            <form id="apiForm">
+                <div class="form-group">
+                    <label for="method">Request Method</label>
+                    <select id="method" name="method">
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="request_input">Request Data</label>
+                    <textarea id="request_input" name="request_input" placeholder="Enter your request data here (e.g., URL like https://api.github.com)"></textarea>
+                </div>
+                <button type="submit" id="submitBtn">Send Request</button>
+            </form>
+        </div>
+
+        <div class="response-container" id="responseContainer" style="display: none;">
+            <h3>Response</h3>
+            <pre class="response-box" id="responseBox"></pre>
+        </div>
+
+        <div class="buttons-group">
+            <a href="/" class="button"><i class="fas fa-home"></i> Home</a>
+            <a href="/user-activity" class="button"><i class="fas fa-users"></i> User Activity</a>
+            <a href="/app-performance" class="button"><i class="fas fa-tachometer-alt"></i> App Performance</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('apiForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const method = document.getElementById('method').value;
+            const requestInput = document.getElementById('request_input').value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+            const responseBox = document.getElementById('responseBox');
+            const responseContainer = document.getElementById('responseContainer');
+
+            // تعطيل الزر وإظهار حالة التحميل
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+            responseBox.textContent = 'Loading response...';
+            responseBox.classList.remove('error');
+            responseBox.classList.add('loading');
+            responseContainer.style.display = 'block';
+
+            try {
+                const response = await fetch('/request-analysis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'method': method,
+                        'request_input': requestInput
+                    })
+                });
+
+                const contentType = response.headers.get('Content-Type');
+                let data;
+
+                // التحقق من نوع المحتوى
+                if (contentType && contentType.includes('application/json')) {
+                    data = await response.json();
+                    responseBox.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    // إذا لم يكن JSON، اعرض الرد كنص خام
+                    data = await response.text();
+                    responseBox.textContent = data;
+                }
+
+                // تحديد ما إذا كان هناك خطأ بناءً على حالة الرد
+                if (response.ok) {
+                    responseBox.classList.remove('error', 'loading');
+                } else {
+                    responseBox.classList.remove('loading');
+                    responseBox.classList.add('error');
+                }
+
+            } catch (error) {
+                responseBox.textContent = `Error: ${error.message}`;
+                responseBox.classList.remove('loading');
+                responseBox.classList.add('error');
+            } finally {
+                // إعادة تنشيط الزر
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Request';
+            }
+        });
+    </script>    
+    
+</body>
+</html>

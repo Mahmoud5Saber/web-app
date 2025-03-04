@@ -1,0 +1,172 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Cache Python Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt', 'requirements-dev.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Dependencies
+        run: |
+          python -m venv venv
+          venv/bin/pip install --upgrade pip
+          venv/bin/pip install --no-cache-dir --prefer-binary -r requirements.txt
+          venv/bin/pip install --no-cache-dir --prefer-binary -r requirements-dev.txt
+
+      - name: Start Flask app
+        run: |
+          venv/bin/python -m flask run --host=0.0.0.0 --port=5050 &
+          sleep 5
+
+      - name: Run Tests and Generate Reports
+        run: |
+          venv/bin/pytest --html=report.html --self-contained-html --cov=app --cov-report=xml --cov-report=term --benchmark-autosave
+      
+      - name: Upload Test Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-report
+          path: report.html
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/
+          
+      - name: Upload Benchmark Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-report
+          path: .benchmarks
+
+
+  security_scan:
+    name: Run Trivy Security Scan
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy Security Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "table"
+          exit-code: "1"
+          output: "/tmp/trivy-report.txt" 
+
+      - name: Upload Trivy Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-security-report
+          path: "/tmp/trivy-report.txt" 
+          
+  build:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: security_scan
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Docker Image with Cache
+        run: |
+          docker buildx build --push --cache-to=type=inline --cache-from=type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/flask-app:latest \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/flask-app:latest \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/flask-app:${{ github.sha }} .
+
+  deploy:
+    name: Deploy to Local Server
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Stop and Remove Old Container (Windows)
+        shell: powershell
+        run: |
+          docker ps -q --filter "name=flask_app" | ForEach-Object { docker stop $_; docker rm $_ }
+
+
+      - name: Run Docker Container
+        run: |
+          docker run -d --name flask_app --restart always -p 5050:5050 `
+            -e FLASK_ENV=production `
+            ${{ secrets.DOCKERHUB_USERNAME }}/flask-app:latest
+
+
+  notify:
+    name: Send Notifications on Failure
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: [test, security_scan, build, deploy, performance_test]
+    steps:
+      - name: Send Slack Notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_MESSAGE: "🚨 CI/CD Pipeline Failed: Check logs!"
+
+  performance_test:
+    name: Run Locust Load Tests
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Locust
+        run: pip install locust
+
+      - name: Start Flask Application
+        run: |
+          nohup python app.py &  
+          sleep 5 
+
+      - name: Check if Flask is running
+        run: curl -v http://127.0.0.1:5050/ || echo "Flask server is not running!"
+
+
+      - name: Run Load Test with Debug
+        run: locust locust --headless -u 10 -r 2 -t 1m --skip-log -H http://192.168.1.6:5050 -f locustfile.py --html locust-report.html
+      - name: Upload Locust Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: locust-load-test-report
+          path: locust-report.html

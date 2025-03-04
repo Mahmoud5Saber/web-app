@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap">
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f2027, #0b1b20, #3894bb);
+            color: #ffffff;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 750px;
+            padding: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+        }
+
+        p {
+            font-size: 18px;
+            font-weight: 400;
+            color: #e0e0e0;
+            margin-bottom: 30px;
+        }
+
+        .buttons-group {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .button {
+            padding: 14px 24px;
+            background: rgba(0, 255, 255, 0.3);
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0, 255, 255, 0.4);
+            transition: all 0.3s ease-in-out;
+            border: 2px solid rgba(0, 255, 255, 0.5);
+            display: inline-block;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .button:hover {
+            background: rgba(0, 255, 255, 0.5);
+            box-shadow: 0 8px 16px rgba(0, 255, 255, 0.7);
+            transform: scale(1.05);
+        }
+
+        .data-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .data-item {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .data-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 Welcome to Our Web App</h1>
+        <p>Explore different features and analyze performance.</p>
+        
+        <div class="buttons-group">
+            <a href="/user-activity" class="button">📊 User Activity</a>
+            <a href="/app-performance" class="button">⚙️ App Performance</a>
+            <a href="/request-analysis" class="button">🔍 Request Analysis</a>
+        </div>
+
+        <div class="data-box">
+            <h2>📌 Latest Data</h2>
+            <div class="data-item"><strong>User:</strong> John Doe</div>
+            <div class="data-item"><strong>Activity:</strong> Logged in & viewed dashboard</div>
+            <div class="data-item"><strong>Timestamp:</strong> 2025-03-02 14:30:45</div>
+        </div>
+    </div>
+</body>
+</html>

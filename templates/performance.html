@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Performance</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #0d0d0d;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+        }
+        h1 {
+            font-size: 50px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #008cff, 0 0 20px #00aaff, 0 0 40px #008cff;
+        }
+        p {
+            font-size: 22px;
+            color: #aaa;
+        }
+        .metrics {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #00aaff;
+        }
+        .metric-item {
+            margin: 10px 0;
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: #008cff;
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 5px;
+            box-shadow: 0 0 10px #008cff;
+            transition: 0.3s;
+        }
+        a:hover {
+            background: #00aaff;
+            box-shadow: 0 0 15px #00aaff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 System Performance</h1>
+        <p>Real-time system performance metrics.</p>
+        <div class="metrics">
+            <div class="metric-item">🖥️ CPU Usage: <span id="cpu_usage">Loading...</span></div>
+            <div class="metric-item">💾 Memory Usage: <span id="memory_usage">Loading...</span></div>
+            <div class="metric-item">🗄️ Disk Usage: <span id="disk_usage">Loading...</span></div>
+        </div>
+        <a href="/">Go Back Home</a>
+    </div>
+
+    <script>
+        function updateMetrics() {
+            fetch('/performance-data')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('cpu_usage').textContent = data.cpu_usage;
+                    document.getElementById('memory_usage').textContent = data.memory_usage;
+                    document.getElementById('disk_usage').textContent = data.disk_usage;
+                })
+                .catch(error => console.error('Error fetching performance data:', error));
+        }
+
+        setInterval(updateMetrics, 1000); 
+        updateMetrics(); 
+    </script>
+</body>
+</html>

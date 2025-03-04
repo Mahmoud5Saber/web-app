@@ -1,0 +1,9 @@
+-r requirements.txt
+pytest
+pytest-benchmark
+pytest-cov
+pytest-html
+pytest-asyncio
+httpx
+mocker
+requests-mock

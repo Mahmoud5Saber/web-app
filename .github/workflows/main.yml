@@ -110,8 +110,8 @@ jobs:
       - name: Build and Push Docker Image with Cache
         run: |
           docker buildx build --push --cache-to=type=inline --cache-from=type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/flask-app:latest \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/flask-app:latest \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/flask-app:${{ github.sha }} .
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/web-app:latest \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/web-app:${{ github.sha }} .
 
   deploy:
     name: Deploy to Local Server
@@ -124,12 +124,12 @@ jobs:
       - name: Stop and Remove Old Container (Windows)
         shell: powershell
         run: |
-          docker ps -q --filter "name=flask_app" | ForEach-Object { docker stop $_; docker rm $_ }
+          docker ps -q --filter "name=web_app" | ForEach-Object { docker stop $_; docker rm $_ }
 
 
       - name: Run Docker Container
         run: |
-          docker run -d --name flask_app --restart always -p 5050:5050 `
+          docker run -d --name web_app --restart always -p 5050:5050 `
             -e FLASK_ENV=production `
             ${{ secrets.DOCKERHUB_USERNAME }}/flask-app:latest
 

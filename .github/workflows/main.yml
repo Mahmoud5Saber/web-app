@@ -45,8 +45,7 @@ jobs:
         run: |
           venv/bin/pytest --html=report.html --self-contained-html --cov=app --cov-report=html --cov-report=term --benchmark-autosave
       
-      - name: Check Generated Reports
-        run: ls -R .benchmarks htmlcov || echo "Reports not found!"
+
 
       - name: Upload Test Report
         uses: actions/upload-artifact@v4
@@ -59,12 +58,18 @@ jobs:
         with:
           name: coverage-report
           path: htmlcov/
-          
+
+      - name: Find Latest Benchmark File
+        id: latest_benchmark
+        run: echo "LATEST_FILE=$(ls -t .benchmarks/Linux-CPython-3.9-64bit | head -n 1)" >> $GITHUB_ENV
+
       - name: Upload Benchmark Report
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-report
-          path: .benchmarks/Windows-CPython-3.13-64bit
+          path: ${{ env.LATEST_FILE }}
+
+          
 
 
   security_scan:

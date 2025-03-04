@@ -43,8 +43,11 @@ jobs:
 
       - name: Run Tests and Generate Reports
         run: |
-          venv/bin/pytest --html=report.html --self-contained-html --cov=app --cov-report=xml --cov-report=term --benchmark-autosave
+          venv/bin/pytest --html=report.html --self-contained-html --cov=app --cov-report=html --cov-report=term --benchmark-autosave
       
+      - name: Check Generated Reports
+        run: ls -R .benchmarks htmlcov || echo "Reports not found!"
+
       - name: Upload Test Report
         uses: actions/upload-artifact@v4
         with:
@@ -61,7 +64,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-report
-          path: .benchmarks
+          path: .benchmarks/Windows-CPython-3.13-64bit
 
 
   security_scan:

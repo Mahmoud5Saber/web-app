@@ -136,7 +136,7 @@ jobs:
         run: |
           docker run -d --name web_app --restart always -p 5050:5050 `
             -e FLASK_ENV=production `
-            ${{ secrets.DOCKERHUB_USERNAME }}/flask-app:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/web-app:latest
 
 
   notify:

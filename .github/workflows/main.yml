@@ -126,10 +126,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Stop and Remove Docker Container
+      - name: Stop and Remove Old Container (Windows)
+        shell: powershell
         run: |
           docker ps -q --filter "name=web_app" | ForEach-Object { docker stop $_; docker rm $_ }
-          shell: pwsh
 
 
       - name: Run Docker Container

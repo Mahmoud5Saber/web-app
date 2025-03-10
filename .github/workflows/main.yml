@@ -167,14 +167,16 @@ jobs:
           nohup python app.py &  
           sleep 5 
 
-      - name: Check if Flask is running
-        run: curl -v http://127.0.0.1:5050/ || echo "Flask server is not running!"
-
+      - name: Check if Flask is Running
+        run: |
+          curl -v http://127.0.0.1:5050/ || { echo "Flask server is not running!"; exit 1; }
 
       - name: Run Load Test with Debug
-        run: locust locust --headless -u 10 -r 2 -t 1m --skip-log -H http://192.168.1.6:5050 -f locustfile.py --html locust-report.html
+        run: locust --headless -u 10 -r 2 -t 1m --skip-log -H http://127.0.0.1:5050 -f locustfile.py --html locust-report.html
+
       - name: Upload Locust Report
         uses: actions/upload-artifact@v4
         with:
           name: locust-load-test-report
           path: locust-report.html
+
